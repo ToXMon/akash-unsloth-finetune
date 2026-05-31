@@ -26,7 +26,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip3 install --no-cache-dir \
     unsloth==2025.5.6 \
     torch==2.6.0 \
-    transformers==4.52.3 \
+    transformers==4.51.3 \
     datasets==3.6.0 \
     peft==0.15.2 \
     trl==0.18.1 \
