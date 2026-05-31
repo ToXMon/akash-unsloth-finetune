@@ -24,6 +24,45 @@ log "=========================================="
 log "Akash Unsloth Fine-tune Demo Starting"
 log "=========================================="
 
+# Sanitize env vars: strip literal ${VAR:-default} patterns that may come from
+# misconfigured deploy.yaml. Container runtimes do NOT expand bash substitution
+# syntax, so we detect and strip it here as a safety net.
+sanitize_env() {
+    local varname="$1"
+    local default="$2"
+    local val="${!varname:-}"
+
+    # If the value looks like a literal ${...:-...} pattern, replace with default
+    if [[ "$val" =~ ^\$\{.*:-.*\}$ ]]; then
+        log "WARNING: $varname contains unexpanded bash syntax '$val', using default '$default'"
+        export "$varname=$default"
+    fi
+}
+
+# Sanitize all configurable env vars
+sanitize_env BASE_MODEL        "unsloth/qwen3.5-4b-instruct-bnb-4bit"
+sanitize_env MAX_SEQ_LENGTH    "2048"
+sanitize_env DATA_SOURCE       "OpenBMB/OlympiadBench"
+sanitize_env DATASET_NAME      "OpenBMB/OlympiadBench"
+sanitize_env DATASET_SUBSET_SIZE "5000"
+sanitize_env SUBSET_SIZE       "5000"
+sanitize_env DATASET_DOMAIN    "medical_qa"
+sanitize_env LORA_RANK         "16"
+sanitize_env LORA_ALPHA        "32"
+sanitize_env LORA_DROPOUT      "0.05"
+sanitize_env LEARNING_RATE     "2e-4"
+sanitize_env NUM_EPOCHS        "3"
+sanitize_env BATCH_SIZE        "4"
+sanitize_env GRADIENT_ACCUMULATION_STEPS "4"
+sanitize_env WARMUP_STEPS      "50"
+sanitize_env SEED              "42"
+sanitize_env PUSH_MERGED       "true"
+sanitize_env PUSH_ADAPTERS     "true"
+sanitize_env HOURLY_RATE       "0.75"
+sanitize_env MAX_BUDGET        "3.00"
+sanitize_env CONFIG_PATH       "configs/train_config.yaml"
+sanitize_env OUTPUT_PATH       "/app/data/train.jsonl"
+
 # Validate required environment variables
 MISSING_VARS=""
 for var in HF_TOKEN HF_REPO_ID; do
@@ -55,10 +94,10 @@ log "=========================================="
 log "Phase 1/3: Data Preparation"
 log "=========================================="
 python -m src.prepare_data \
-    --dataset "${DATASET_NAME:-OpenBMB/OlympiadBench}" \
-    --subset-size "${SUBSET_SIZE:-5000}" \
-    --output "${OUTPUT_PATH:-/app/data/train.jsonl}" \
-    --seed "${SEED:-42}"
+    --dataset "${DATASET_NAME}" \
+    --subset-size "${SUBSET_SIZE}" \
+    --output "${OUTPUT_PATH}" \
+    --seed "${SEED}"
 
 DATA_EXIT=$?
 if [ ${DATA_EXIT} -ne 0 ]; then
@@ -79,7 +118,7 @@ log "=========================================="
 log "Phase 2/3: QLoRA Fine-tuning"
 log "=========================================="
 python -m src.train \
-    --config "configs/train_config.yaml" \
+    --config "${CONFIG_PATH}" \
     ${MAX_STEPS:+--max-steps ${MAX_STEPS}}
 
 TRAIN_EXIT=$?
@@ -94,7 +133,7 @@ log "Training complete. Adapters saved to /app/output/lora_adapters/"
 log "=========================================="
 log "Phase 3/3: Model Upload"
 log "=========================================="
-python -m src.upload --config "configs/train_config.yaml"
+python -m src.upload --config "${CONFIG_PATH}"
 
 UPLOAD_EXIT=$?
 if [ ${UPLOAD_EXIT} -ne 0 ]; then
@@ -108,7 +147,7 @@ HOURS=$(( ELAPSED / 3600 ))
 MINUTES=$(( (ELAPSED % 3600) / 60 ))
 SECONDS=$(( ELAPSED % 60 ))
 SECS=$ELAPSED
-ESTIMATED_COST=$(python3 -c "print(round($SECS / 3600 * 0.75, 2))")
+ESTIMATED_COST=$(python3 -c "print(round($SECS / 3600 * ${HOURLY_RATE}, 2))")
 
 log "=========================================="
 log "Pipeline Complete!"
