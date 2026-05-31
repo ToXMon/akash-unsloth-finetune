@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && ln -sf /usr/bin/python3.11 /usr/bin/python3
 
 # Install pinned Python ML dependencies
-RUN pip3 install --no-cache-dir --break-system-packages \
+RUN pip3 install --no-cache-dir \
     unsloth==2025.5.6 \
     torch==2.6.0 \
     transformers==4.52.3 \
