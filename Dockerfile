@@ -22,19 +22,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && ln -sf /usr/bin/python3.11 /usr/bin/python \
     && ln -sf /usr/bin/python3.11 /usr/bin/python3
 
-# Install pinned Python ML dependencies
+# Install unsloth first (it resolves its own dependency tree)
+RUN pip3 install --no-cache-dir unsloth==2025.5.6
+
+# Install additional packages not pulled by unsloth
 RUN pip3 install --no-cache-dir \
-    unsloth==2025.5.6 \
-    torch==2.6.0 \
-    transformers==4.51.3 \
-    datasets==3.6.0 \
-    peft==0.15.2 \
-    trl==0.18.1 \
-    huggingface_hub==0.32.4 \
-    accelerate==1.7.0 \
-    bitsandbytes==0.46.0 \
     pyyaml==6.0.2 \
-    numpy==2.2.6 \
     pytest==8.4.0
 
 # ============================================================
