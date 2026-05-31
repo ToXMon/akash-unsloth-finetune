@@ -7,15 +7,15 @@ services:
     image: ghcr.io/toxmon/akash-unsloth-finetune:v1.0.0
     command: ["/app/entrypoint.sh"]
     env:
-      # === Required Secrets (no defaults) ===
-      - "HF_TOKEN=${HF_TOKEN}"
-      - "HF_REPO_ID=${HF_REPO_ID}"
+      # === Secrets (export HF_TOKEN and HF_REPO_ID before deploying) ===
+      - "HF_TOKEN=${HF_TOKEN:-}"
+      - "HF_REPO_ID=${HF_REPO_ID:-ToXMon/qwen3.5-4b-finetuned}"
       # === Model Configuration ===
       - "BASE_MODEL=unsloth/qwen3.5-4b-instruct-bnb-4bit"
       - "MAX_SEQ_LENGTH=2048"
       # === Dataset Configuration ===
-      - "DATA_SOURCE=OpenBMB/OlympiadBench"
-      - "DATASET_NAME=OpenBMB/OlympiadBench"
+      - "DATA_SOURCE=lmms-lab/OlympiadBench"
+      - "DATASET_NAME=lmms-lab/OlympiadBench"
       - "DATASET_SUBSET_SIZE=5000"
       - "SUBSET_SIZE=5000"
       - "DATASET_DOMAIN=medical_qa"

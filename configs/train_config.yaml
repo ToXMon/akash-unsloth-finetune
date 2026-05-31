@@ -11,7 +11,7 @@ model:
   dtype: null  # auto-detect (float16 for Ampere+, bfloat16 for H200)
 
 dataset:
-  source: OpenBMB/OlympiadBench
+  source: lmms-lab/OlympiadBench
   subset_size: 5000
   format: alpaca
   domain: medical_qa

@@ -42,8 +42,8 @@ sanitize_env() {
 # Sanitize all configurable env vars
 sanitize_env BASE_MODEL        "unsloth/qwen3.5-4b-instruct-bnb-4bit"
 sanitize_env MAX_SEQ_LENGTH    "2048"
-sanitize_env DATA_SOURCE       "OpenBMB/OlympiadBench"
-sanitize_env DATASET_NAME      "OpenBMB/OlympiadBench"
+sanitize_env DATA_SOURCE       "lmms-lab/OlympiadBench"
+sanitize_env DATASET_NAME      "lmms-lab/OlympiadBench"
 sanitize_env DATASET_SUBSET_SIZE "5000"
 sanitize_env SUBSET_SIZE       "5000"
 sanitize_env DATASET_DOMAIN    "medical_qa"
@@ -63,18 +63,14 @@ sanitize_env MAX_BUDGET        "3.00"
 sanitize_env CONFIG_PATH       "configs/train_config.yaml"
 sanitize_env OUTPUT_PATH       "/app/data/train.jsonl"
 
-# Validate required environment variables
-MISSING_VARS=""
-for var in HF_TOKEN HF_REPO_ID; do
-    if [ -z "${!var:-}" ]; then
-        MISSING_VARS="${MISSING_VARS}  - ${var}\n"
-    fi
-done
-
-if [ -n "${MISSING_VARS}" ]; then
-    echo "ERROR: Missing required environment variables:" >&2
-    echo -e "${MISSING_VARS}" >&2
-    exit 1
+# Validate/defaults for HF upload variables (optional — training proceeds without them)
+if [ -z "${HF_TOKEN:-}" ]; then
+    log "WARNING: HF_TOKEN not set — model upload will be skipped"
+    export HF_TOKEN=""
+fi
+if [ -z "${HF_REPO_ID:-}" ]; then
+    log "WARNING: HF_REPO_ID not set — using default"
+    export HF_REPO_ID="ToXMon/qwen3.5-4b-finetuned"
 fi
 
 log "Environment validated: HF_REPO_ID=${HF_REPO_ID}"
@@ -129,15 +125,19 @@ fi
 
 log "Training complete. Adapters saved to /app/output/lora_adapters/"
 
-# Phase 3: Upload
+# Phase 3: Upload (skip if no HF_TOKEN)
 log "=========================================="
 log "Phase 3/3: Model Upload"
 log "=========================================="
-python -m src.upload --config "${CONFIG_PATH}"
-
-UPLOAD_EXIT=$?
-if [ ${UPLOAD_EXIT} -ne 0 ]; then
-    log "WARNING: Upload failed (exit ${UPLOAD_EXIT}), artifacts saved locally"
+if [ -n "${HF_TOKEN:-}" ]; then
+    python -m src.upload --config "${CONFIG_PATH}"
+    UPLOAD_EXIT=$?
+    if [ ${UPLOAD_EXIT} -ne 0 ]; then
+        log "WARNING: Upload failed (exit ${UPLOAD_EXIT}), artifacts saved locally"
+    fi
+else
+    log "WARNING: HF_TOKEN not set — skipping model upload"
+    log "Artifacts available locally at /app/output/"
 fi
 
 # Summary
