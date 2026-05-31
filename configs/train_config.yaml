@@ -1,0 +1,74 @@
+# Training configuration for Akash Unsloth Fine-tune Demo
+# Model: Qwen 3.5 4B Instruct (4-bit quantized)
+# Dataset: OpenBMB/OlympiadBench (~5K samples)
+# Method: QLoRA (4-bit quant + LoRA adapters)
+# Target: Akash H200 GPU at $0.75/hr
+
+model:
+  base_model: unsloth/qwen3.5-4b-instruct-bnb-4bit
+  max_seq_length: 2048
+  load_in_4bit: true
+  dtype: null  # auto-detect (float16 for Ampere+, bfloat16 for H200)
+
+dataset:
+  source: OpenBMB/OlympiadBench
+  subset_size: 5000
+  format: alpaca
+  domain: medical_qa
+  train_split: train
+  seed: 42
+
+lora:
+  rank: 16
+  alpha: 32
+  dropout: 0.05
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+  use_rslora: false
+  use_gradient_checkpointing: true
+
+training:
+  num_epochs: 3
+  learning_rate: 2.0e-4
+  batch_size: 4
+  gradient_accumulation_steps: 4
+  warmup_steps: 50
+  logging_steps: 10
+  save_steps: 500
+  save_total_limit: 3
+  max_grad_norm: 1.0
+  lr_scheduler_type: cosine
+  optim: adamw_8bit
+  weight_decay: 0.01
+  fp16: false
+  bf16: true
+  per_device_eval_batch_size: 4
+  eval_strategy: "no"
+  seed: 42
+
+upload:
+  hub_target: huggingface
+  push_merged: true
+  push_adapters: true
+  create_model_card: true
+
+cost:
+  hourly_rate: 0.75
+  max_budget: 3.00
+  estimated_hours: 2.5
+  warn_at_percent: 80
+  stop_at_percent: 100
+
+paths:
+  output_dir: /app/output
+  lora_dir: /app/output/lora_adapters
+  merged_dir: /app/output/merged_model
+  data_dir: /app/data
+  log_dir: /app/logs
+  train_file: /app/data/train.jsonl

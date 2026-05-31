@@ -1,0 +1,75 @@
+---
+version: "2.0"
+
+services:
+  finetune:
+    # Replace with your own registry/image and a pinned version tag
+    image: akash-unsloth-finetune:v1.0.0
+    command: ["/app/entrypoint.sh"]
+    env:
+      # === Required Secrets (no defaults) ===
+      - "HF_TOKEN=${HF_TOKEN}"
+      - "HF_REPO_ID=${HF_REPO_ID}"
+      # === Model Configuration ===
+      - "BASE_MODEL=${BASE_MODEL:-unsloth/qwen3.5-4b-instruct-bnb-4bit}"
+      - "MAX_SEQ_LENGTH=${MAX_SEQ_LENGTH:-2048}"
+      # === Dataset Configuration ===
+      - "DATA_SOURCE=${DATA_SOURCE:-OpenBMB/OlympiadBench}"
+      - "DATASET_NAME=${DATASET_NAME:-OpenBMB/OlympiadBench}"
+      - "DATASET_SUBSET_SIZE=${DATASET_SUBSET_SIZE:-5000}"
+      - "SUBSET_SIZE=${SUBSET_SIZE:-5000}"
+      - "DATASET_DOMAIN=${DATASET_DOMAIN:-medical_qa}"
+      # === LoRA Configuration ===
+      - "LORA_RANK=${LORA_RANK:-16}"
+      - "LORA_ALPHA=${LORA_ALPHA:-32}"
+      - "LORA_DROPOUT=${LORA_DROPOUT:-0.05}"
+      # === Training Configuration ===
+      - "LEARNING_RATE=${LEARNING_RATE:-2e-4}"
+      - "NUM_EPOCHS=${NUM_EPOCHS:-3}"
+      - "BATCH_SIZE=${BATCH_SIZE:-4}"
+      - "GRADIENT_ACCUMULATION_STEPS=${GRADIENT_ACCUMULATION_STEPS:-4}"
+      - "WARMUP_STEPS=${WARMUP_STEPS:-50}"
+      - "SEED=${SEED:-42}"
+      - "MAX_STEPS=${MAX_STEPS:-}"
+      # === Upload Configuration ===
+      - "PUSH_MERGED=${PUSH_MERGED:-true}"
+      - "PUSH_ADAPTERS=${PUSH_ADAPTERS:-true}"
+      # === Cost Control ===
+      - "HOURLY_RATE=${HOURLY_RATE:-0.75}"
+      - "MAX_BUDGET=${MAX_BUDGET:-3.00}"
+      # === Paths ===
+      - "CONFIG_PATH=${CONFIG_PATH:-configs/train_config.yaml}"
+      - "OUTPUT_PATH=${OUTPUT_PATH:-/app/data/train.jsonl}"
+    expose:
+      - port: 8080
+        as: 8080
+        to:
+          - global: true
+
+profiles:
+  compute:
+    finetune:
+      resources:
+        cpu:
+          units: 8
+        memory:
+          size: 32Gi
+        storage:
+          size: 100Gi
+        gpu:
+          units: 1
+          attributes:
+            vendor:
+              nvidia:
+                - model: h200
+  placement:
+    akash:
+      pricing:
+        finetune:
+          denom: uact
+          amount: 100000
+deployment:
+  finetune:
+    akash:
+      profile: finetune
+      count: 1
