@@ -5,7 +5,6 @@ __pycache__
 *.pyc
 *.pyo
 *.egg-info
-tests/
 docs/
 *.md
 !README.md
