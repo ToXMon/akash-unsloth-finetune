@@ -134,3 +134,36 @@ ERROR: Script failed at line 57 with exit code 1
 - Fix `prepare_data.py` to accept `DATA_SPLIT` env var (default: `test_en`)
 - Or switch to a dataset that has a `train` split
 - Rebuild Docker image, push to GHCR, redeploy
+
+---
+
+## DSEQ 27077258 — ❌ CUDA Driver Mismatch (Data Prep PASSED!)
+
+- **Created**: Block 27077258
+- **Provider**: `akash1evr5r8r8zgxddvhru3t0l8q079a94ew8hcgwdd`
+- **GPU**: NVIDIA H200 (143GB VRAM, driver 570.211.01) ✅
+- **Rate**: 3,600.77 uact/block (~$0.75/hr)
+- **Escrow**: 8,000,000 uact (8 ACT) ✅
+- **Image**: `ghcr.io/toxmon/akash-unsloth-finetune:v1.1.0` ✅
+- **Runtime**: ~2 minutes
+- **State**: closed/owner
+- **Root Cause**: PyTorch/unsloth compiled for CUDA 12.6+ but Dockerfile uses `nvidia/cuda:12.4.0-devel-ubuntu22.04` base image
+- **Fix**: Updated Dockerfile to `nvidia/cuda:12.6.3-devel-ubuntu22.04`, image tag bumped to v1.2.0
+
+**MILESTONE: Data preparation PASSED for the first time!**
+```
+Phase 1/3: Data Preparation
+Generating test_en split: 100%|██████████| 2126/2126
+Training data ready: 2002 samples
+Phase 2/3: QLoRA Fine-tuning
+CUDA initialization: NVIDIA driver too old (found version 12080)
+NotImplementedError: Unsloth currently only works on NVIDIA GPUs and Intel GPUs.
+```
+
+**What was fixed from DSEQ 27067570**:
+1. ✅ DATA_SPLIT=test_en env var added
+2. ✅ prepare_data.py --split argument added
+3. ✅ Dataset split test_en works (2002 samples loaded)
+
+**What still needs fixing**:
+- CUDA base image: 12.4.0 → 12.6.3 (pushed, CI building v1.2.0)
