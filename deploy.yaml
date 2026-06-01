@@ -4,7 +4,7 @@ version: "2.0"
 services:
   finetune:
     # GHCR image — pinned version tag (never use :latest)
-    image: ghcr.io/toxmon/akash-unsloth-finetune:v1.1.0
+    image: ghcr.io/toxmon/akash-unsloth-finetune:v1.2.0
     command: ["/app/entrypoint.sh"]
     env:
       # === Secrets (export HF_TOKEN and HF_REPO_ID before deploying) ===

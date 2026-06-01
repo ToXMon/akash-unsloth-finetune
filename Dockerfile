@@ -1,7 +1,7 @@
 # ============================================================
 # Stage 1: Base image with CUDA, Python, and ML dependencies
 # ============================================================
-FROM nvidia/cuda:12.4.0-devel-ubuntu22.04 AS base
+FROM nvidia/cuda:12.6.3-devel-ubuntu22.04 AS base
 
 # Prevent interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive

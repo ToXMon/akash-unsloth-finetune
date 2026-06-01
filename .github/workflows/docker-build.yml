@@ -12,9 +12,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Image tag (e.g. v1.1.0)'
+        description: 'Image tag (e.g. v1.2.0)'
         required: true
-        default: 'v1.1.0'
+        default: 'v1.2.0'
 
 env:
   REGISTRY: ghcr.io
@@ -47,7 +47,7 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "tag=${{ inputs.tag }}" >> $GITHUB_OUTPUT
           else
-            echo "tag=v1.1.0" >> $GITHUB_OUTPUT
+            echo "tag=v1.2.0" >> $GITHUB_OUTPUT
           fi
 
       - name: Build and push
