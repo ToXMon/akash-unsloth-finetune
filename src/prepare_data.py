@@ -173,6 +173,7 @@ def main():
     parser.add_argument("--output", type=str, default=None, help="Output JSONL path")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
     parser.add_argument("--domain", type=str, default=None, help="Domain label")
+    parser.add_argument("--split", type=str, default=None, help="Dataset split to use (e.g. train, test_en, test_cn)")
     args = parser.parse_args()
 
     # Load config
@@ -185,9 +186,9 @@ def main():
     output_path = args.output or os.environ.get("OUTPUT_PATH", config["paths"]["train_file"])
     seed = args.seed or config["dataset"].get("seed", 42)
     domain = args.domain or config["dataset"].get("domain", "medical_qa")
-    split = config["dataset"].get("train_split", "train")
+    split = args.split or os.environ.get("DATA_SPLIT", config["dataset"].get("train_split", "train"))
 
-    logger.info("Preparing dataset: %s (subset=%d, domain=%s)", dataset_name, subset_size, domain)
+    logger.info("Preparing dataset: %s (split=%s, subset=%d, domain=%s)", dataset_name, split, subset_size, domain)
 
     # Download
     dataset = download_dataset(dataset_name, split=split)

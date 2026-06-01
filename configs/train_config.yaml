@@ -15,7 +15,7 @@ dataset:
   subset_size: 5000
   format: alpaca
   domain: medical_qa
-  train_split: train
+  train_split: test_en
   seed: 42
 
 lora:

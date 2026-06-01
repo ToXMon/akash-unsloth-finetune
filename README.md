@@ -243,6 +243,56 @@ docker rmi akash-unsloth-finetune:latest
 - [OlympiadBench Dataset](https://huggingface.co/datasets/OpenBMB/OlympiadBench) — Competition math problems
 - [provider-services CLI](https://github.com/akash-network/provider-services) — Akash deployment tool
 
+## Deployment Results
+
+> **Status**: 4 deployment attempts on Akash Mainnet — all crashed at different stages. Full autopsy in `deployment-artifacts/`.
+
+### Deployment History
+
+| DSEQ | Escrow | Runtime | Root Cause | Fix |
+|------|--------|---------|------------|-----|
+| 27062068 | 0.5 ACT | 14 min | Insufficient escrow funds | Funded 8 ACT |
+| 27067167 | 8 ACT | ~1 min | `${SUBSET_SIZE:-5000}` literal string | Plain env values |
+| 27067332 | 8 ACT | ~2 min | Wrong dataset name + HF token as literal | Fixed dataset, made HF optional |
+| 27067570 | 8 ACT | ~2 min | Dataset has no `train` split | **Pending** — need `DATA_SPLIT` env var |
+
+### Cost Analysis
+
+| Metric | Value |
+|--------|-------|
+| GPU hourly rate | ~$0.75/hr (H200) |
+| Cost per block | 3,600.77 uact/block |
+| Estimated training cost | ~$0.98 (1.3hr run) |
+| Total spent on failed deploys | ~$0.015 |
+| Escrow per attempt (8 ACT) | ~$7.84 |
+
+### Lessons Learned
+
+1. **Over-fund escrow**: 0.5 ACT lasted 14 minutes on H200. Use 8+ ACT.
+2. **No bash substitution in YAML**: `${VAR:-default}` is shell-only. Docker/K8s env sections pass it as literal string.
+3. **Verify dataset splits**: `lmms-lab/OlympiadBench` has `test_en` and `test_cn` — no `train` split. Always check `dataset.info.splits`.
+4. **Make optional vars truly optional**: HF_TOKEN should not block training — only upload.
+5. **Pin image tags**: `:latest` causes non-reproducible deployments. Use `:v1.0.0`.
+6. **Each failure teaches something different**: 4 deploys, 4 distinct root causes — env vars, funding, dataset name, dataset splits.
+
+### Artifacts
+
+| File | Description |
+|------|-------------|
+| `deployment-artifacts/SESSION_SUMMARY.md` | Full lifecycle from idea to deployment |
+| `deployment-artifacts/DEPLOYMENT_HISTORY.md` | Detailed per-deployment autopsy |
+| `deployment-artifacts/logs-dseq-27067570.txt` | Captured lease logs from final attempt |
+| `deploy.yaml` | Akash SDL with H200 GPU config |
+| `.github/workflows/docker-build.yml` | CI/CD for GHCR image builds |
+
+### Next Steps
+
+- [ ] Add `DATA_SPLIT` env var to `prepare_data.py` (default: `test_en`)
+- [ ] Rebuild Docker image as `v1.1.0`
+- [ ] Deploy DSEQ 27067571+ with `DATA_SPLIT=test_en`
+- [ ] Verify training starts successfully
+- [ ] Monitor loss convergence on H200
+
 ## License
 
 MIT

@@ -47,6 +47,7 @@ sanitize_env DATASET_NAME      "lmms-lab/OlympiadBench"
 sanitize_env DATASET_SUBSET_SIZE "5000"
 sanitize_env SUBSET_SIZE       "5000"
 sanitize_env DATASET_DOMAIN    "medical_qa"
+sanitize_env DATA_SPLIT       "test_en"
 sanitize_env LORA_RANK         "16"
 sanitize_env LORA_ALPHA        "32"
 sanitize_env LORA_DROPOUT      "0.05"
@@ -91,6 +92,7 @@ log "Phase 1/3: Data Preparation"
 log "=========================================="
 python -m src.prepare_data \
     --dataset "${DATASET_NAME}" \
+    --split "${DATA_SPLIT}" \
     --subset-size "${SUBSET_SIZE}" \
     --output "${OUTPUT_PATH}" \
     --seed "${SEED}"

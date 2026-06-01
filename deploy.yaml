@@ -4,7 +4,7 @@ version: "2.0"
 services:
   finetune:
     # GHCR image — pinned version tag (never use :latest)
-    image: ghcr.io/toxmon/akash-unsloth-finetune:v1.0.0
+    image: ghcr.io/toxmon/akash-unsloth-finetune:v1.1.0
     command: ["/app/entrypoint.sh"]
     env:
       # === Secrets (export HF_TOKEN and HF_REPO_ID before deploying) ===
@@ -19,6 +19,7 @@ services:
       - "DATASET_SUBSET_SIZE=5000"
       - "SUBSET_SIZE=5000"
       - "DATASET_DOMAIN=medical_qa"
+      - "DATA_SPLIT=test_en"
       # === LoRA Configuration ===
       - "LORA_RANK=16"
       - "LORA_ALPHA=32"
