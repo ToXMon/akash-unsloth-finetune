@@ -52,23 +52,31 @@ profiles:
     finetune:
       resources:
         cpu:
-          units: 8
+          units: 4
         memory:
-          size: 32Gi
+          size: 24Gi
         storage:
-          size: 100Gi
+          size: 50Gi
         gpu:
           units: 1
           attributes:
             vendor:
               nvidia:
-                - model: h200
+                - model: a100
+                - model: a40
+                - model: l40
+                - model: l40s
+                - model: rtx4090
+                - model: rtx3090
+                - model: rtx4080
+                - model: v100
+                - model: t4
   placement:
     akash:
       pricing:
         finetune:
           denom: uact
-          amount: 100000
+          amount: 200000
 deployment:
   finetune:
     akash:
